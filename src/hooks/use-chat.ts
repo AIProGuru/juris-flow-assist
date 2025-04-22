@@ -84,6 +84,7 @@ export function useChat() {
 
   return {
     messages,
+    setMessages,  // Add this line to return setMessages
     isLoading,
     sendMessage
   };

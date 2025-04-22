@@ -22,7 +22,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
-  const { messages, isLoading, sendMessage } = useChat();
+  const { messages, setMessages, isLoading, sendMessage } = useChat();
   const [chats] = useState<Chat[]>([
     { id: "1", title: "AI Discussion", createdAt: new Date().toISOString() },
     { id: "2", title: "Project Planning", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
@@ -47,7 +47,7 @@ const Index = () => {
       createdAt: new Date().toISOString(),
     };
     setActiveChatId(newChat.id);
-    setMessages([]);
+    setMessages([]); // Use the setMessages method from useChat
   };
 
   const groupChatsByDate = (chats: Chat[]) => {
