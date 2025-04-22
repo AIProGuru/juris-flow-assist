@@ -83,6 +83,8 @@ export function useChat(initialThreadId?: string) {
     isLoading,
     sendMessage,
     fetchThreadMessages,
-    currentThreadId
+    currentThreadId,
+    // Add a method to reset the thread ID
+    resetThreadId: () => setCurrentThreadId(null)
   };
 }

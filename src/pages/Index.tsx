@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
-  const { messages, setMessages, isLoading, sendMessage, fetchThreadMessages } = useChat();
+  const { messages, setMessages, isLoading, sendMessage, fetchThreadMessages, currentThreadId, resetThreadId } = useChat();
   const { chatThreads } = useChatThreads();
 
   const handleLogout = async () => {
@@ -40,6 +39,7 @@ const Index = () => {
     };
     setActiveChatId(newChat.id);
     setMessages([]);
+    resetThreadId();
   };
 
   const handleSelectChat = (threadId: string) => {
@@ -104,9 +104,7 @@ const Index = () => {
         </div>
       )}
 
-      {/* Main content: flex column with messages scrollable, input fixed */}
       <div className="flex-1 flex flex-col h-screen max-h-screen">
-        {/* Navbar */}
         <nav className="bg-white shadow-sm flex-shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
@@ -127,7 +125,6 @@ const Index = () => {
             </div>
           </div>
         </nav>
-        {/* Chat area - scrollable messages, input fixed at bottom */}
         <div className="flex-1 flex flex-col relative min-h-0">
           <div className="flex-1 min-h-0 max-h-full overflow-y-auto">
             <ChatMessages messages={messages} />
