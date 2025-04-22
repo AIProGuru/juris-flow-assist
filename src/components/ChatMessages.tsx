@@ -16,7 +16,7 @@ export const ChatMessages = ({ messages }: ChatMessagesProps) => {
   const isMobile = useIsMobile();
   
   return (
-    <ScrollArea className="flex-1 p-4">
+    <ScrollArea className="flex-1 p-4 h-[calc(100vh-200px)] overflow-y-auto">
       <div className={`${isMobile ? 'max-w-full' : 'max-w-3xl'} mx-auto space-y-4`}>
         {messages.map((message) => (
           <div
