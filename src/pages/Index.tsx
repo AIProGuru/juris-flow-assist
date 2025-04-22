@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { useChat } from "@/hooks/use-chat";
 
 interface Chat {
   id: string;
@@ -22,7 +22,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
-  const [messages, setMessages] = useState<Array<{ id: string; content: string; role: "user" | "assistant" }>>([]);
+  const { messages, isLoading, sendMessage } = useChat();
   const [chats] = useState<Chat[]>([
     { id: "1", title: "AI Discussion", createdAt: new Date().toISOString() },
     { id: "2", title: "Project Planning", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
@@ -35,12 +35,9 @@ const Index = () => {
   };
 
   const handleSendMessage = (content: string) => {
-    const newMessage = {
-      id: String(Date.now()),
-      content,
-      role: "user" as const,
-    };
-    setMessages((prev) => [...prev, newMessage]);
+    if (content.trim()) {
+      sendMessage(content);
+    }
   };
 
   const handleNewChat = () => {
@@ -49,7 +46,6 @@ const Index = () => {
       title: "New Chat",
       createdAt: new Date().toISOString(),
     };
-    // Here you would typically save the new chat to your backend
     setActiveChatId(newChat.id);
     setMessages([]);
   };
@@ -132,7 +128,7 @@ const Index = () => {
 
         <main className="flex-1 flex flex-col">
           <ChatMessages messages={messages} />
-          <ChatInput onSendMessage={handleSendMessage} />
+          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
         </main>
       </div>
     </div>
