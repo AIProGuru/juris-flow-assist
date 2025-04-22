@@ -7,14 +7,22 @@ import { LogOut } from "lucide-react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
+import { format } from "date-fns";
+
+interface Chat {
+  id: string;
+  title: string;
+  createdAt: string;
+}
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
   const [messages, setMessages] = useState<Array<{ id: string; content: string; role: "user" | "assistant" }>>([]);
-  const [chats] = useState([
-    { id: "1", title: "General Chat" },
-    { id: "2", title: "Technical Support" },
+  const [chats] = useState<Chat[]>([
+    { id: "1", title: "AI Discussion", createdAt: new Date().toISOString() },
+    { id: "2", title: "Project Planning", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "3", title: "Code Review", createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
   ]);
 
   const handleLogout = async () => {
@@ -31,15 +39,50 @@ const Index = () => {
     setMessages((prev) => [...prev, newMessage]);
   };
 
+  const handleNewChat = () => {
+    const newChat = {
+      id: String(Date.now()),
+      title: "New Chat",
+      createdAt: new Date().toISOString(),
+    };
+    // Here you would typically save the new chat to your backend
+    setActiveChatId(newChat.id);
+    setMessages([]);
+  };
+
+  const groupChatsByDate = (chats: Chat[]) => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return {
+      today: chats.filter(chat => {
+        const chatDate = new Date(chat.createdAt);
+        return format(chatDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+      }),
+      lastWeek: chats.filter(chat => {
+        const chatDate = new Date(chat.createdAt);
+        return chatDate > sevenDaysAgo && format(chatDate, 'yyyy-MM-dd') !== format(today, 'yyyy-MM-dd');
+      }),
+      lastMonth: chats.filter(chat => {
+        const chatDate = new Date(chat.createdAt);
+        return chatDate > thirtyDaysAgo && chatDate <= sevenDaysAgo;
+      }),
+      older: chats.filter(chat => {
+        const chatDate = new Date(chat.createdAt);
+        return chatDate <= thirtyDaysAgo;
+      }),
+    };
+  };
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="h-screen flex">
       <ChatSidebar
         chats={chats}
         activeChatId={activeChatId}
         onSelectChat={setActiveChatId}
-        onNewChat={() => {
-          // Handle new chat creation
-        }}
+        onNewChat={handleNewChat}
+        groupedChats={groupChatsByDate(chats)}
       />
       
       <div className="flex-1 flex flex-col">

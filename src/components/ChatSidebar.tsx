@@ -6,7 +6,14 @@ import { MessageSquare, Plus } from "lucide-react";
 interface ChatItem {
   id: string;
   title: string;
-  active?: boolean;
+  createdAt: string;
+}
+
+interface GroupedChats {
+  today: ChatItem[];
+  lastWeek: ChatItem[];
+  lastMonth: ChatItem[];
+  older: ChatItem[];
 }
 
 interface ChatSidebarProps {
@@ -14,11 +21,35 @@ interface ChatSidebarProps {
   onSelectChat: (id: string) => void;
   onNewChat: () => void;
   activeChatId?: string;
+  groupedChats: GroupedChats;
 }
 
-export const ChatSidebar = ({ chats, onSelectChat, onNewChat, activeChatId }: ChatSidebarProps) => {
+export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChats }: ChatSidebarProps) => {
+  const renderChatGroup = (chats: ChatItem[], title: string) => {
+    if (chats.length === 0) return null;
+    
+    return (
+      <div className="space-y-2">
+        <h3 className="px-3 text-xs font-medium text-gray-400">{title}</h3>
+        {chats.map((chat) => (
+          <Button
+            key={chat.id}
+            variant="ghost"
+            className={`w-full justify-start ${
+              chat.id === activeChatId ? 'bg-gray-700' : 'hover:bg-gray-800'
+            }`}
+            onClick={() => onSelectChat(chat.id)}
+          >
+            <MessageSquare className="mr-2" />
+            <span className="truncate">{chat.title}</span>
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="w-[260px] h-full bg-gray-900 text-white flex flex-col">
+    <div className="w-[260px] h-screen bg-gray-900 text-white flex flex-col">
       <div className="p-3">
         <Button 
           onClick={onNewChat}
@@ -30,20 +61,11 @@ export const ChatSidebar = ({ chats, onSelectChat, onNewChat, activeChatId }: Ch
       </div>
       
       <ScrollArea className="flex-1 px-3">
-        <div className="space-y-2 pb-4">
-          {chats.map((chat) => (
-            <Button
-              key={chat.id}
-              variant="ghost"
-              className={`w-full justify-start ${
-                chat.id === activeChatId ? 'bg-gray-700' : 'hover:bg-gray-800'
-              }`}
-              onClick={() => onSelectChat(chat.id)}
-            >
-              <MessageSquare className="mr-2" />
-              <span className="truncate">{chat.title}</span>
-            </Button>
-          ))}
+        <div className="space-y-4 pb-4">
+          {renderChatGroup(groupedChats.today, "Today")}
+          {renderChatGroup(groupedChats.lastWeek, "Previous 7 Days")}
+          {renderChatGroup(groupedChats.lastMonth, "Previous 30 Days")}
+          {renderChatGroup(groupedChats.older, "Older")}
         </div>
       </ScrollArea>
     </div>
