@@ -1,24 +1,23 @@
-
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Plus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-interface ChatItem {
+interface ChatThread {
   id: string;
   title: string;
   createdAt: string;
 }
 
 interface GroupedChats {
-  today: ChatItem[];
-  lastWeek: ChatItem[];
-  lastMonth: ChatItem[];
-  older: ChatItem[];
+  today: ChatThread[];
+  lastWeek: ChatThread[];
+  lastMonth: ChatThread[];
+  older: ChatThread[];
 }
 
 interface ChatSidebarProps {
-  chats: ChatItem[];
+  chats: ChatThread[];
   onSelectChat: (id: string) => void;
   onNewChat: () => void;
   activeChatId?: string;
@@ -28,7 +27,7 @@ interface ChatSidebarProps {
 export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChats }: ChatSidebarProps) => {
   const isMobile = useIsMobile();
   
-  const renderChatGroup = (chats: ChatItem[], title: string) => {
+  const renderChatGroup = (chats: ChatThread[], title: string) => {
     if (chats.length === 0) return null;
     
     return (

@@ -6,28 +6,18 @@ import { LogOut } from "lucide-react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
-import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useChat } from "@/hooks/use-chat";
-
-interface Chat {
-  id: string;
-  title: string;
-  createdAt: string;
-}
+import { useChatThreads } from "@/hooks/use-chat-threads";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
   const { messages, setMessages, isLoading, sendMessage } = useChat();
-  const [chats] = useState<Chat[]>([
-    { id: "1", title: "AI Discussion", createdAt: new Date().toISOString() },
-    { id: "2", title: "Project Planning", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: "3", title: "Code Review", createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-  ]);
+  const { chatThreads } = useChatThreads();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -47,10 +37,10 @@ const Index = () => {
       createdAt: new Date().toISOString(),
     };
     setActiveChatId(newChat.id);
-    setMessages([]); // Use the setMessages method from useChat
+    setMessages([]);
   };
 
-  const groupChatsByDate = (chats: Chat[]) => {
+  const groupChatsByDate = (chats: typeof chatThreads) => {
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -86,21 +76,21 @@ const Index = () => {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[280px]">
             <ChatSidebar
-              chats={chats}
+              chats={chatThreads}
               activeChatId={activeChatId}
               onSelectChat={setActiveChatId}
               onNewChat={handleNewChat}
-              groupedChats={groupChatsByDate(chats)}
+              groupedChats={groupChatsByDate(chatThreads)}
             />
           </SheetContent>
         </Sheet>
       ) : (
         <ChatSidebar
-          chats={chats}
+          chats={chatThreads}
           activeChatId={activeChatId}
           onSelectChat={setActiveChatId}
           onNewChat={handleNewChat}
-          groupedChats={groupChatsByDate(chats)}
+          groupedChats={groupChatsByDate(chatThreads)}
         />
       )}
       
