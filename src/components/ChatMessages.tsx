@@ -1,0 +1,33 @@
+
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface Message {
+  id: string;
+  content: string;
+  role: "user" | "assistant";
+}
+
+interface ChatMessagesProps {
+  messages: Message[];
+}
+
+export const ChatMessages = ({ messages }: ChatMessagesProps) => {
+  return (
+    <ScrollArea className="flex-1 p-4">
+      <div className="max-w-3xl mx-auto space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`p-4 rounded-lg ${
+              message.role === "user"
+                ? "bg-blue-50 ml-auto"
+                : "bg-gray-50"
+            }`}
+          >
+            {message.content}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+};
