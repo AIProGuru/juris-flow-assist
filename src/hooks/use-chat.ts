@@ -9,11 +9,32 @@ interface Message {
   role: 'user' | 'assistant';
 }
 
-export function useChat() {
+export function useChat(initialThreadId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(initialThreadId || null);
   const { toast } = useToast();
+
+  const fetchThreadMessages = async (threadId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await supabase.functions.invoke('chat', {
+        body: { threadId, action: 'get_messages' }
+      });
+
+      if (response.error) throw response.error;
+      setMessages(response.data.messages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch messages. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const sendMessage = async (content: string) => {
     try {
@@ -26,17 +47,6 @@ export function useChat() {
         role: 'user'
       };
       setMessages(prev => [...prev, userMessage]);
-
-      // Save message to database
-      const { error: dbError } = await supabase
-        .from('chat_messages')
-        .insert({
-          thread_id: currentThreadId,
-          content,
-          role: 'user'
-        });
-
-      if (dbError) throw dbError;
 
       // Call OpenAI assistant
       const response = await supabase.functions.invoke('chat', {
@@ -52,23 +62,8 @@ export function useChat() {
         setCurrentThreadId(threadId);
       }
 
-      // Save assistant message to database
-      const { error: assistantDbError } = await supabase
-        .from('chat_messages')
-        .insert({
-          thread_id: threadId,
-          content: message.content,
-          role: 'assistant'
-        });
-
-      if (assistantDbError) throw assistantDbError;
-
       // Add assistant message to UI
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        content: message.content,
-        role: 'assistant'
-      }]);
+      setMessages(prev => [...prev, message]);
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -84,8 +79,10 @@ export function useChat() {
 
   return {
     messages,
-    setMessages,  // Add this line to return setMessages
+    setMessages,
     isLoading,
-    sendMessage
+    sendMessage,
+    fetchThreadMessages,
+    currentThreadId
   };
 }

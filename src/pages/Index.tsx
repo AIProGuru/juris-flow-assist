@@ -11,12 +11,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useChat } from "@/hooks/use-chat";
 import { useChatThreads } from "@/hooks/use-chat-threads";
+import { format } from "date-fns";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
-  const { messages, setMessages, isLoading, sendMessage } = useChat();
+  const { messages, setMessages, isLoading, sendMessage, fetchThreadMessages } = useChat();
   const { chatThreads } = useChatThreads();
 
   const handleLogout = async () => {
@@ -38,6 +39,12 @@ const Index = () => {
     };
     setActiveChatId(newChat.id);
     setMessages([]);
+  };
+
+  const handleSelectChat = (threadId: string) => {
+    setActiveChatId(threadId);
+    setMessages([]);
+    fetchThreadMessages(threadId);
   };
 
   const groupChatsByDate = (chats: typeof chatThreads) => {
@@ -78,7 +85,7 @@ const Index = () => {
             <ChatSidebar
               chats={chatThreads}
               activeChatId={activeChatId}
-              onSelectChat={setActiveChatId}
+              onSelectChat={handleSelectChat}
               onNewChat={handleNewChat}
               groupedChats={groupChatsByDate(chatThreads)}
             />
@@ -88,7 +95,7 @@ const Index = () => {
         <ChatSidebar
           chats={chatThreads}
           activeChatId={activeChatId}
-          onSelectChat={setActiveChatId}
+          onSelectChat={handleSelectChat}
           onNewChat={handleNewChat}
           groupedChats={groupChatsByDate(chatThreads)}
         />

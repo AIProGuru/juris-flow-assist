@@ -18,8 +18,24 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, threadId } = await req.json();
+    const { messages, threadId, action } = await req.json();
     
+    // If action is 'get_messages', fetch thread messages
+    if (action === 'get_messages' && threadId) {
+      const messageList = await openai.beta.threads.messages.list(threadId);
+      return new Response(
+        JSON.stringify({
+          messages: messageList.data.map(msg => ({
+            id: msg.id,
+            content: msg.content[0].text.value,
+            role: msg.role
+          }))
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle chat message creation and response
     let thread;
     if (!threadId) {
       thread = await openai.beta.threads.create();
@@ -59,6 +75,7 @@ serve(async (req) => {
       JSON.stringify({
         threadId: thread.id,
         message: {
+          id: lastMessage.id,
           role: lastMessage.role,
           content: lastMessage.content[0].text.value
         }
