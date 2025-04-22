@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -92,21 +93,25 @@ const Index = () => {
           </SheetContent>
         </Sheet>
       ) : (
-        <ChatSidebar
-          chats={chatThreads}
-          activeChatId={activeChatId}
-          onSelectChat={handleSelectChat}
-          onNewChat={handleNewChat}
-          groupedChats={groupChatsByDate(chatThreads)}
-        />
+        <div className="h-full">
+          <ChatSidebar
+            chats={chatThreads}
+            activeChatId={activeChatId}
+            onSelectChat={handleSelectChat}
+            onNewChat={handleNewChat}
+            groupedChats={groupChatsByDate(chatThreads)}
+          />
+        </div>
       )}
-      
-      <div className="flex-1 flex flex-col">
-        <nav className="bg-white shadow-sm">
+
+      {/* Main content: flex column with messages scrollable, input fixed */}
+      <div className="flex-1 flex flex-col h-screen max-h-screen">
+        {/* Navbar */}
+        <nav className="bg-white shadow-sm flex-shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
-                {isMobile && <div className="w-8" />} {/* Spacer for mobile menu button */}
+                {isMobile && <div className="w-8" />}
                 <h1 className="text-xl font-semibold">Dashboard</h1>
               </div>
               <div className="flex items-center">
@@ -122,11 +127,15 @@ const Index = () => {
             </div>
           </div>
         </nav>
-
-        <main className="flex-1 flex flex-col">
-          <ChatMessages messages={messages} />
-          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
-        </main>
+        {/* Chat area - scrollable messages, input fixed at bottom */}
+        <div className="flex-1 flex flex-col relative min-h-0">
+          <div className="flex-1 min-h-0 max-h-full overflow-y-auto">
+            <ChatMessages messages={messages} />
+          </div>
+          <div className="sticky bottom-0 bg-white z-10">
+            <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+          </div>
+        </div>
       </div>
     </div>
   );
