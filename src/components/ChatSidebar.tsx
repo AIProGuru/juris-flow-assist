@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Plus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatItem {
   id: string;
@@ -25,6 +26,8 @@ interface ChatSidebarProps {
 }
 
 export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChats }: ChatSidebarProps) => {
+  const isMobile = useIsMobile();
+  
   const renderChatGroup = (chats: ChatItem[], title: string) => {
     if (chats.length === 0) return null;
     
@@ -40,7 +43,7 @@ export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChat
             }`}
             onClick={() => onSelectChat(chat.id)}
           >
-            <MessageSquare className="mr-2" />
+            <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
             <span className="truncate">{chat.title}</span>
           </Button>
         ))}
@@ -49,13 +52,13 @@ export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChat
   };
 
   return (
-    <div className="w-[260px] h-screen bg-gray-900 text-white flex flex-col">
+    <div className={`${isMobile ? 'w-full' : 'w-[260px]'} h-full bg-gray-900 text-white flex flex-col`}>
       <div className="p-3">
         <Button 
           onClick={onNewChat}
           className="w-full bg-gray-700 hover:bg-gray-600"
         >
-          <Plus className="mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           New chat
         </Button>
       </div>

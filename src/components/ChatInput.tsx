@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import { useState, KeyboardEvent } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -11,6 +12,7 @@ interface ChatInputProps {
 
 export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  const isMobile = useIsMobile();
 
   const handleSend = () => {
     if (message.trim()) {
@@ -28,7 +30,7 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
 
   return (
     <div className="border-t bg-white p-4">
-      <div className="max-w-3xl mx-auto flex gap-4">
+      <div className={`${isMobile ? 'w-full' : 'max-w-3xl'} mx-auto flex gap-4`}>
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -41,8 +43,9 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
         <Button
           onClick={handleSend}
           disabled={!message.trim() || disabled}
+          className="shrink-0"
         >
-          <Send />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

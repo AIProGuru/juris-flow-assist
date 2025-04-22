@@ -8,6 +8,9 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
 interface Chat {
   id: string;
@@ -17,6 +20,7 @@ interface Chat {
 
 const Index = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeChatId, setActiveChatId] = useState<string | undefined>();
   const [messages, setMessages] = useState<Array<{ id: string; content: string; role: "user" | "assistant" }>>([]);
   const [chats] = useState<Chat[]>([
@@ -77,19 +81,39 @@ const Index = () => {
 
   return (
     <div className="h-screen flex">
-      <ChatSidebar
-        chats={chats}
-        activeChatId={activeChatId}
-        onSelectChat={setActiveChatId}
-        onNewChat={handleNewChat}
-        groupedChats={groupChatsByDate(chats)}
-      />
+      {isMobile ? (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[280px]">
+            <ChatSidebar
+              chats={chats}
+              activeChatId={activeChatId}
+              onSelectChat={setActiveChatId}
+              onNewChat={handleNewChat}
+              groupedChats={groupChatsByDate(chats)}
+            />
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <ChatSidebar
+          chats={chats}
+          activeChatId={activeChatId}
+          onSelectChat={setActiveChatId}
+          onNewChat={handleNewChat}
+          groupedChats={groupChatsByDate(chats)}
+        />
+      )}
       
       <div className="flex-1 flex flex-col">
         <nav className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
+                {isMobile && <div className="w-8" />} {/* Spacer for mobile menu button */}
                 <h1 className="text-xl font-semibold">Dashboard</h1>
               </div>
               <div className="flex items-center">
@@ -99,7 +123,7 @@ const Index = () => {
                   className="flex items-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {!isMobile && "Logout"}
                 </Button>
               </div>
             </div>
