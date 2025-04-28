@@ -1,12 +1,26 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
 const BACKEND_SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
+}
+
+function generateUUID() {
+  if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  } else {
+    // Simple fallback UUID (not cryptographically perfect)
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
 }
 
 export function useChat(initialThreadId?: string) {
@@ -82,7 +96,7 @@ export function useChat(initialThreadId?: string) {
 
       // Add user message to UI
       const userMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         content,
         role: "user",
       };
@@ -125,7 +139,7 @@ export function useChat(initialThreadId?: string) {
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           content: summary,
           role: "assistant",
         },
