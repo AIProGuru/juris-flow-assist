@@ -1,32 +1,38 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 export interface ChatThread {
   id: string;
   title: string;
-  createdAt: string;
+  updatedAt: string;
+  threadID: string;
 }
 
 export function useChatThreads() {
   const [chatThreads, setChatThreads] = useState<ChatThread[]>([]);
 
   const fetchChatThreads = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData?.session?.user?.id;
+    if (!uid) return;
+
     const { data, error } = await supabase
-      .from('chat_threads')
-      .select('id, title, created_at')
-      .order('created_at', { ascending: false });
+      .from("chat_threads")
+      .select("id, title, updated_at, thread_id")
+      .eq("user_id", uid)
+      .order("updated_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching chat threads:', error);
+      console.error("Error fetching chat threads:", error);
       return;
     }
 
-    const formattedThreads: ChatThread[] = data.map(thread => ({
+    const formattedThreads: ChatThread[] = data.map((thread) => ({
       id: thread.id,
       title: thread.title,
-      createdAt: thread.created_at
+      updatedAt: thread.updated_at,
+      threadID: thread.thread_id,
     }));
 
     setChatThreads(formattedThreads);
@@ -37,13 +43,13 @@ export function useChatThreads() {
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel('chat_threads_changes')
+      .channel("chat_threads_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'chat_threads'
+          event: "*",
+          schema: "public",
+          table: "chat_threads",
         },
         () => {
           fetchChatThreads();
@@ -58,6 +64,6 @@ export function useChatThreads() {
 
   return {
     chatThreads,
-    refreshThreads: fetchChatThreads
+    refreshThreads: fetchChatThreads,
   };
 }

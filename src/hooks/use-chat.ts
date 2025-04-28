@@ -1,35 +1,68 @@
-
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+const BACKEND_SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
 }
 
 export function useChat(initialThreadId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [currentCountry, setCurrentCountry] = useState<string | null>("El Salvador");
+
   const [isLoading, setIsLoading] = useState(false);
-  const [currentThreadId, setCurrentThreadId] = useState<string | null>(initialThreadId || null);
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(
+    initialThreadId || null
+  );
+
   const { toast } = useToast();
+
+  const getCountryName = async (content: string) => {
+    const countries = ["El Salvador", "Costa Rica"];
+    const lowerContent = content.toLowerCase();
+
+    for (const country of countries) {
+      if (lowerContent.includes(country.toLowerCase())) {
+        return country;
+      }
+    }
+
+    return null;
+  };
 
   const fetchThreadMessages = async (threadId: string) => {
     try {
       setIsLoading(true);
-      const response = await supabase.functions.invoke('chat', {
-        body: { threadId, action: 'get_messages' }
-      });
+      setCurrentThreadId(threadId);
 
-      if (response.error) throw response.error;
-      setMessages(response.data.messages);
+      const response = await fetch(
+        `${BACKEND_SERVER_URL}/api/get-thread-history`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            threadId: threadId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.json(); // or use response.json() if it's JSON
+        throw new Error(`Server error: ${errorText}`);
+      }
+      const data = await response.json();
+      setMessages(data.messages.reverse());
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
       toast({
         title: "Error",
         description: "Failed to fetch messages. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -39,38 +72,73 @@ export function useChat(initialThreadId?: string) {
   const sendMessage = async (content: string) => {
     try {
       setIsLoading(true);
-      
+
+      // Detect country from the content
+      const detectedCountry = await getCountryName(content);
+      console.log(detectedCountry)
+
+      if (detectedCountry && detectedCountry !== currentCountry) {
+        setCurrentCountry(detectedCountry);
+      }
+
       // Add user message to UI
       const userMessage: Message = {
         id: crypto.randomUUID(),
         content,
-        role: 'user'
+        role: "user",
       };
-      setMessages(prev => [...prev, userMessage]);
+      setMessages((prev) => [...prev, userMessage]);
 
-      // Call OpenAI assistant
-      const response = await supabase.functions.invoke('chat', {
-        body: { messages: [...messages, userMessage], threadId: currentThreadId }
+      const { data: sessionData, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error("Error fetching session:", error);
+        return;
+      }
+
+      const userID = sessionData?.session?.user?.id;
+      console.log("current country", currentCountry);
+      const response = await fetch(`${BACKEND_SERVER_URL}/api/meilisearch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userID: userID,
+          threadID: currentThreadId,
+          query: content,
+          country: detectedCountry || currentCountry, // <-- send currentCountry to backend
+        }),
       });
 
-      if (response.error) throw response.error;
+      if (!response.ok) {
+        const errorText = await response.json(); // or use response.json() if it's JSON
+        throw new Error(`Server error: ${errorText}`);
+      }
 
-      const { threadId, message } = response.data;
-      
+      const { summary, threadID } = await response.json();
+      console.log(summary, threadID);
+
       // Update thread ID if this is a new conversation
       if (!currentThreadId) {
-        setCurrentThreadId(threadId);
+        setCurrentThreadId(threadID);
       }
 
       // Add assistant message to UI
-      setMessages(prev => [...prev, message]);
-
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          content: summary,
+          role: "assistant",
+        },
+      ]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -79,12 +147,11 @@ export function useChat(initialThreadId?: string) {
 
   return {
     messages,
-    setMessages,
+    setMessages, // Add this line to return setMessages
     isLoading,
     sendMessage,
     fetchThreadMessages,
     currentThreadId,
-    // Add a method to reset the thread ID
-    resetThreadId: () => setCurrentThreadId(null)
+    resetThreadId: () => setCurrentThreadId(null),
   };
 }

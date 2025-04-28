@@ -1,9 +1,11 @@
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Plus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ChatThread } from "@/hooks/use-chat-threads";
 
-interface ChatThread {
+interface ChatItem {
   id: string;
   title: string;
   createdAt: string;
@@ -40,7 +42,7 @@ export const ChatSidebar = ({ onSelectChat, onNewChat, activeChatId, groupedChat
             className={`w-full justify-start ${
               chat.id === activeChatId ? 'bg-gray-700' : 'hover:bg-gray-800'
             }`}
-            onClick={() => onSelectChat(chat.id)}
+            onClick={() => onSelectChat(chat.threadID)}
           >
             <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
             <span className="truncate">{chat.title}</span>
