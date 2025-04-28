@@ -18,7 +18,6 @@ export const ChatMessages = ({ messages }: ChatMessagesProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log(messages)
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }

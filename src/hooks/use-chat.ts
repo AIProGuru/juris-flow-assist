@@ -75,7 +75,6 @@ export function useChat(initialThreadId?: string) {
 
       // Detect country from the content
       const detectedCountry = await getCountryName(content);
-      console.log(detectedCountry)
 
       if (detectedCountry && detectedCountry !== currentCountry) {
         setCurrentCountry(detectedCountry);
@@ -97,7 +96,6 @@ export function useChat(initialThreadId?: string) {
       }
 
       const userID = sessionData?.session?.user?.id;
-      console.log("current country", currentCountry);
       const response = await fetch(`${BACKEND_SERVER_URL}/api/meilisearch`, {
         method: "POST",
         headers: {
@@ -117,7 +115,6 @@ export function useChat(initialThreadId?: string) {
       }
 
       const { summary, threadID } = await response.json();
-      console.log(summary, threadID);
 
       // Update thread ID if this is a new conversation
       if (!currentThreadId) {
