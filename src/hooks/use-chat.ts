@@ -35,7 +35,7 @@ export function useChat(initialThreadId?: string) {
   const { toast } = useToast();
 
   const getCountryName = async (content: string) => {
-    const countries = ["El Salvador", "Costa Rica", "Nicaragua"];
+    const countries = ["El Salvador", "Costa Rica", "Nicaragua", "Honduras"];
     const lowerContent = content.toLowerCase();
 
     for (const country of countries) {
